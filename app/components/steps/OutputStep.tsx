@@ -117,7 +117,7 @@ export function OutputStep({
                 Tingkatkan dengan AI
               </h3>
               <p className="text-xs text-purple-600">
-                Gemini AI akan meng-enhance prompt menjadi lebih detail
+                AI Sinaridesa akan meng-enhance prompt menjadi lebih detail
               </p>
             </div>
           </div>
@@ -152,7 +152,7 @@ export function OutputStep({
               <div className="flex items-center gap-2 text-green-700">
                 <CheckCircle2 size={20} />
                 <span className="font-bold text-sm">
-                  Hasil Enhanced by Gemini AI
+                  Hasil Enhanced by AI Sinaridesa
                 </span>
               </div>
               <button

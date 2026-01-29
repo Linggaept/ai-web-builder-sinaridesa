@@ -171,7 +171,7 @@ export function PromptBuilder() {
       heroCta,
     } = formData;
 
-    const aiEnhancedTag = isAiEnhanced ? " ✨ (Enhanced by Gemini AI)" : "";
+    const aiEnhancedTag = isAiEnhanced ? " ✨ (Enhanced by AI Sinaridesa)" : "";
 
     return `### **Sinaridesa OS - Web Architecture Blueprint**
 Act as a Principal Software Architect. Your mission is to build a professional, scalable web application.
