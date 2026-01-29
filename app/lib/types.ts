@@ -9,6 +9,7 @@ export interface FormData {
   industry: string;
   phoneNumber: string;
   description: string;
+  isAiEnhanced: boolean;
   valueProposition: string;
   refWebsites: string;
   targetAudience: string;
@@ -44,6 +45,7 @@ export const getDefaultFormData = (): FormData => ({
   industry: "",
   phoneNumber: "",
   description: "",
+  isAiEnhanced: false,
   valueProposition: "",
   refWebsites: "",
   targetAudience: "",

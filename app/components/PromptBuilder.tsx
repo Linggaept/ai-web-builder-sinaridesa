@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Navbar } from "./Navbar";
@@ -34,6 +34,20 @@ export function PromptBuilder() {
   // Local history (no Firebase)
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
+  // Load history from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("sinaridesa_history");
+        if (saved) {
+          setHistory(JSON.parse(saved));
+        }
+      } catch (err) {
+        console.error("Failed to load history:", err);
+      }
+    }
+  }, []);
+
   const nextStep = () =>
     setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
@@ -53,7 +67,20 @@ export function PromptBuilder() {
     return successful;
   };
 
-  // Save to local history (no Firebase)
+  // Generate UUID fallback
+  const generateId = () => {
+    if (typeof crypto !== "undefined" && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback untuk browser yang tidak support crypto.randomUUID
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === "x" ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  };
+
+  // Save to local history with localStorage persistence
   const saveToHistory = () => {
     if (!formData.businessName) {
       showToast("Nama proyek wajib diisi!", "error");
@@ -62,15 +89,27 @@ export function PromptBuilder() {
 
     setIsSaving(true);
     try {
-      const draftId = crypto.randomUUID();
+      const draftId = generateId();
       const newItem: HistoryItem = {
         ...formData,
         id: draftId,
         timestamp: { seconds: Date.now() / 1000 },
       };
-      setHistory((prev) => [newItem, ...prev]);
-      showToast("Proyek berhasil disimpan ke arsip");
-    } catch {
+
+      const updatedHistory = [newItem, ...history];
+      setHistory(updatedHistory);
+
+      // Persist to localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem(
+          "sinaridesa_history",
+          JSON.stringify(updatedHistory),
+        );
+      }
+
+      showToast("Proyek berhasil disimpan ke arsip ✅");
+    } catch (error) {
+      console.error("Save error:", error);
       showToast("Gagal menyimpan proyek", "error");
     } finally {
       setIsSaving(false);
@@ -103,7 +142,7 @@ export function PromptBuilder() {
         throw new Error(data.error || "Gagal menghubungi AI");
       }
 
-      updateFormData({ description: data.enhanced });
+      updateFormData({ description: data.enhanced, isAiEnhanced: true });
       showToast("Deskripsi berhasil ditingkatkan dengan AI! ✨");
     } catch (error) {
       const message =
@@ -120,6 +159,8 @@ export function PromptBuilder() {
       businessName,
       industry,
       phoneNumber,
+      description,
+      isAiEnhanced,
       style,
       colorPreference,
       features,
@@ -130,6 +171,8 @@ export function PromptBuilder() {
       heroCta,
     } = formData;
 
+    const aiEnhancedTag = isAiEnhanced ? " ✨ (Enhanced by Gemini AI)" : "";
+
     return `### **Sinaridesa OS - Web Architecture Blueprint**
 Act as a Principal Software Architect. Your mission is to build a professional, scalable web application.
 
@@ -137,6 +180,7 @@ Act as a Principal Software Architect. Your mission is to build a professional, 
 - Project Name: ${businessName || "Unnamed"}
 - Industry: ${industry || "Tech"}
 - Primary Contact: ${phoneNumber || "N/A"} (Must be prominent in Footer/Contact)
+- Description: ${description || "No description provided"}${aiEnhancedTag}
 
 **2. VISUAL STRATEGY**
 - Style Persona: ${STYLES[style as StyleKey]?.label || "Modern"}
