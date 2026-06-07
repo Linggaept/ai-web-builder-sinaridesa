@@ -65,7 +65,7 @@ Write 1-2 sentences about scalability and future opportunities.
 ## OUTPUT:`;
 
     const response = await openai.chat.completions.create({
-      model: "gemini-2.5-flash-lite",
+      model: "gemini/gemini-2.5-flash-lite",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.85,
       max_tokens: 1024,

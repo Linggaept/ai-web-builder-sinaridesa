@@ -123,7 +123,7 @@ For each main component, specify:
 NOW GENERATE THE COMPLETE SPECIFICATION:`;
 
     const response = await openai.chat.completions.create({
-      model: "gemini-2.5-flash-lite",
+      model: "gemini/gemini-2.5-flash-lite",
       messages: [{ role: "user", content: systemPrompt }],
       temperature: 0.8,
       max_tokens: 16384,
