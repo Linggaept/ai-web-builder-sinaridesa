@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+const openai = new OpenAI({
+  apiKey: process.env.SUMOPOD_API_KEY,
+  baseURL: "https://ai.sumopod.com/v1",
+});
 
 export async function POST(request: NextRequest) {
   try {
-    if (!GEMINI_API_KEY) {
+    if (!process.env.SUMOPOD_API_KEY) {
       return NextResponse.json(
-        { error: "GEMINI_API_KEY tidak ditemukan di environment" },
+        { error: "SUMOPOD_API_KEY tidak ditemukan di environment" },
         { status: 500 }
       );
     }
@@ -62,42 +64,14 @@ Write 1-2 sentences about scalability and future opportunities.
 
 ## OUTPUT:`;
 
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: prompt,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.85,
-          maxOutputTokens: 1024,
-          topP: 0.9,
-          topK: 40,
-        },
-      }),
+    const response = await openai.chat.completions.create({
+      model: "gemini-2.5-flash-lite",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.85,
+      max_tokens: 1024,
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Gemini API Error:", errorData);
-      return NextResponse.json(
-        { error: "Gagal menghubungi Gemini API" },
-        { status: response.status }
-      );
-    }
-
-    const data = await response.json();
-    const enhancedText =
-      data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+    const enhancedText = response.choices[0]?.message?.content?.trim() || "";
 
     if (!enhancedText) {
       return NextResponse.json(
@@ -115,4 +89,3 @@ Write 1-2 sentences about scalability and future opportunities.
     );
   }
 }
-

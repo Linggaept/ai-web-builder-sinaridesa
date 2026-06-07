@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+const openai = new OpenAI({
+  apiKey: process.env.SUMOPOD_API_KEY,
+  baseURL: "https://ai.sumopod.com/v1",
+});
 
 export async function POST(request: NextRequest) {
   try {
-    if (!GEMINI_API_KEY) {
+    if (!process.env.SUMOPOD_API_KEY) {
       return NextResponse.json(
-        { error: "GEMINI_API_KEY tidak ditemukan di environment" },
+        { error: "SUMOPOD_API_KEY tidak ditemukan di environment" },
         { status: 500 }
       );
     }
@@ -51,7 +53,7 @@ ${prompt}
 ## Shadows
 - Shadow definitions (sm, md, lg, xl)
 
-# � 3. TECH STACK
+# 🛠 3. TECH STACK
 - Framework, language, state management
 - Required npm packages (list with versions)
 - Environment variables needed
@@ -99,7 +101,7 @@ For each main component, specify:
 - State management flow
 - Error handling approach
 
-# � 7. RESPONSIVE DESIGN
+# 📱 7. RESPONSIVE DESIGN
 - Breakpoints: sm(640px), md(768px), lg(1024px), xl(1280px)
 - Mobile navigation pattern
 - Grid/flex adjustments per viewport
@@ -120,60 +122,14 @@ For each main component, specify:
 
 NOW GENERATE THE COMPLETE SPECIFICATION:`;
 
-    const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: systemPrompt,
-              },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.8,
-          maxOutputTokens: 16384,
-          topP: 0.95,
-          topK: 40,
-        },
-        safetySettings: [
-          {
-            category: "HARM_CATEGORY_HARASSMENT",
-            threshold: "BLOCK_NONE",
-          },
-          {
-            category: "HARM_CATEGORY_HATE_SPEECH",
-            threshold: "BLOCK_NONE",
-          },
-          {
-            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-            threshold: "BLOCK_NONE",
-          },
-          {
-            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-            threshold: "BLOCK_NONE",
-          },
-        ],
-      }),
+    const response = await openai.chat.completions.create({
+      model: "gemini-2.5-flash-lite",
+      messages: [{ role: "user", content: systemPrompt }],
+      temperature: 0.8,
+      max_tokens: 16384,
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Gemini API Error:", errorData);
-      return NextResponse.json(
-        { error: "Gagal menghubungi Gemini API" },
-        { status: response.status }
-      );
-    }
-
-    const data = await response.json();
-    const enhancedPrompt =
-      data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+    const enhancedPrompt = response.choices[0]?.message?.content?.trim() || "";
 
     if (!enhancedPrompt) {
       return NextResponse.json(
@@ -191,5 +147,3 @@ NOW GENERATE THE COMPLETE SPECIFICATION:`;
     );
   }
 }
-
-
